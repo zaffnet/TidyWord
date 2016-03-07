@@ -1,5 +1,0 @@
-Could you please be more precise as to what "doesn't work" ? Do you have a specific error message, or does is simply not provide the expected output ? – Julien Vivenot Nov 16 '12 at 0:33
-  	 	
-I was actually receiving "unary operator expected" so it looks like quoting helps – HTF Nov 16 '12 at 0:40
-  	 	
--a has duplicity. When used with the Bourne shell style test command, a.k.a. [, the it means and. When used as a conditional expression then it is testing to see if a file exists. Yes it is confusing, best 

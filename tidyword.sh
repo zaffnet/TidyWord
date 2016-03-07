@@ -47,6 +47,12 @@ echo " "
 cat stemmedoutput1.txt | tr [:space:] '\n' | grep -v "^\s*$" | sort | uniq | sort -bnr > arrangedoutput1.txt
 cat stemmedoutput2.txt | tr [:space:] '\n' | grep -v "^\s*$" | sort | uniq | sort -bnr > arrangedoutput2.txt
 
+
+if ! [ -s arrangedoutput1.txt ] && ! [ -s arrangedoutput2.txt ]; then
+	echo "Cleaned file is empty. Try another file."
+	exit 1
+fi
+
 echo "Calculating Document Similarity..."
 echo " "
 gcc -std=c99 -o docsim docsim.c docsim.h -lm

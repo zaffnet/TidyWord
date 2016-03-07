@@ -76,6 +76,7 @@ bool load(const char* text1, const char* text2)
     int swt = 0;
     while (fscanf(f1, "%s", word) != EOF)
     {   
+
         insert(word, 0);
         doc_len1++;  
     }

@@ -1,3 +1,17 @@
+/*************************   TIDY WORD    *************************************
+*
+*   HEADER FILE: IMPLEMENTS THE FUNCTIONALITY BEHIND TIDYWORD 
+*   (See docsim.c)
+*
+*   By: ZAFARULLAH MAHMOOD      
+*   zafarullahmahmood@gmail.com
+*
+*   
+*   Release: 1.0
+*   Last Updated: March 3, 2016                               New Delhi, India
+*
+******************************************************************************/
+
 // standard libraries
 # include <ctype.h>
 # include <stdbool.h>
@@ -28,13 +42,18 @@ node* trie = NULL;
 
 // intermediate variables
 double euclid_sum = 0.0000;
-double cosine_sum1 = 0.0000;
-double cosine_sum2 = 0.0000;
-double cosine_prod = 0.0000;
+double sum1 = 0.0000;
+double sum2 = 0.0000;
+double sqsum1 = 0.0000;
+double sqsum2 = 0.0000;
+double prod = 0.0000;
+double klsum = 0.0000;
+double gamma = 100.0000;
 
 //document lengths
 int doc_len1 = 0;
 int doc_len2 = 0;
+double m = 0;
 
 // threshold for document terms
 int terms1 = 0;
@@ -43,14 +62,15 @@ int terms2 = 0;
 // prototypes
 bool load(const char* text1, const char* text2);
 void insert(const char* word, int swt);
-void euclid_traverse(node* ptr);
+void traverse(node* ptr);
 double euclid(void);
+double cosine(void);
+double jaccard(void);
+double pearson(void);
+double avgkl(void);
 int hash(char c);
 bool unload(void);
 void finish(node* ptr);
-void cosine_traverse(node* ptr);
-double cosine(void);
-double jaccard(void);
 double len_normalize(int word_length);
 
 /*  Loads text1 and text2 as mentioned in argv[2] and 
@@ -150,84 +170,110 @@ int hash(char c)
         return 0;
 }
 
-void euclid_traverse(node* ptr)
+// traversesthe trie using DFS to calculate parameters of similiarity
+void traverse(node* ptr)
 {
 	if (ptr->word == true)
 	{
         // tf is the number of documents containing the term
-        int tf = (ptr->occur1 > 0 && ptr->occur2 >0) ? 2: 1;
-		euclid_sum += pow((ptr->occur1*log(2/tf) - ptr->occur2*log(2/tf)), 2);
+        //int tf = (ptr->occur1 > 0 && ptr->occur2 >0) ? 2: 1;
+        double term1 = (ptr->occur1)*1.0000/doc_len1*len_normalize(ptr->length);
+        double term2 = (ptr->occur2)*1.0000/doc_len2*len_normalize(ptr->length);
+		euclid_sum += pow(ptr->occur1 - ptr->occur2, 2);
+        sum1 += term1;
+        sum2 += term2;
+        sqsum1 += pow(term1, 2);
+        sqsum2 += pow(term2, 2);
+        prod += term1*term2;
+        double pi1 = (term1*1.0000)/(term1 + term2);
+        double pi2 = (term2*1.0000)/(term1 + term2);
+        double wt = pi1*term1 + pi2*term2;
+        if (term1 != 0)
+        {
+            if (pi1*term1*log(term1/wt) >= 0)
+                klsum += gamma*pi1*term1*log(term1/wt);
+            else
+                 klsum += -gamma*pi1*term1*log(term1/wt);
+        }
+        if (term2 != 0)
+        {
+            if (pi2*term2*log(term2/wt) >= 0)
+                klsum += gamma*pi2*term2*log(term2/wt);
+            else
+                 klsum += -gamma*pi2*term2*log(term2/wt);
+        }
+        m++;
+
 	}
     for(int i = 0; i < 26; i++)
     {
         if(ptr->children[i] == NULL)
             ;
         else
-            euclid_traverse(ptr->children[i]);
+            traverse(ptr->children[i]);
     }
 
 }
 
+
+// returns Euclidean distance between the docs
 double euclid(void)
 {
-    euclid_sum = 0;
-    euclid_traverse(trie);
+    traverse(trie);
     return sqrt(euclid_sum);
 }
 
-
-void cosine_traverse(node* ptr)
-{
-    if (ptr->word == true)
-    {
-        //int tf = (ptr->occur1 > 0 && ptr->occur2 > 0) ? 2: 1;
-        double term1 = (ptr->occur1)*1.0000/doc_len1*len_normalize(ptr->length);
-        double term2 = (ptr->occur2)*1.0000/doc_len2*len_normalize(ptr->length);
-        cosine_sum1 += pow(term1, 2);
-        cosine_sum2 += pow(term2, 2);
-        cosine_prod += term1*term2;
-    }
-    for(int i = 0; i < 26; i++)
-    {
-        if(ptr->children[i] == NULL)
-            ;
-        else
-            cosine_traverse(ptr->children[i]);
-    }
-
-}
-
+// returns cosin similariy between the docs
 double cosine(void)
 {
-    cosine_sum1 = 0.0000;
-    cosine_sum2 = 0.0000;
-    cosine_prod = 0.0000;
-    cosine_traverse(trie);
-    double x = (sqrt(cosine_sum1)*sqrt(cosine_sum2));
+    double x = (sqrt(sqsum1)*sqrt(sqsum2));
     if (x == 0)
     {
         return 1;
     }
     else
     {
-        return cosine_prod/x;
-    }
-    
+        return prod/x;
+    }   
 }
 
+// returns jaccard similarity between the docs
 double jaccard(void)
 {
-    double x = (cosine_sum1 + cosine_sum2 - cosine_prod);
+    double x = (sqsum1 + sqsum2 - prod);
     if(x == 0)
     {
         return 1;
     }
     else
     {
-            return (cosine_prod)/x;
+            return (prod)/x;
     }
 }
 
+// returns the pearson similarity between the docs
+double pearson(void)
+{
+    double x = sqrt((m*sqsum1 -sum1*sum1)*(m*sqsum2 - sum2*sum2));
+    if (x == 0)
+    {
+        return 1;
+    }
+    else 
+    {
+        double p = (m*prod - sum1*sum2)/x;
+        if (p >= 0)
+            return 1 - p;
+        else
+            return -p;
+    }
+    
+}
+
+double avgkl(void)
+{
+    return klsum;
+}
 
 bool unload(void)
 {
@@ -250,6 +296,8 @@ void finish(node* ptr)
     free(ptr);
 }
 
+
+// len normalization
 double len_normalize(int word_length)
 {
     switch(word_length)

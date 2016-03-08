@@ -17,13 +17,13 @@
 * Poter's Stemmer in ANSI C (porter.c)
 * Document Similarity code to find Euclidean, Cosine and Jaccard Similarity Coefficients (docsim.c)
 
-### To compile and run TidyWord using gcc:
+## To compile and run TidyWord using gcc:
 ```
 gcc -std=c99 -o tidyword tidyword.c tidy.h 
 ./tidyword input.txt stop.txt base.txt > output.txt
 ```
 
-### To directly calculate Document Similarity:
+## To directly calculate Document Similarity:
 ``` 
 ./tidyword.sh inputfile1.txt inputfile2.txt
 ```

@@ -1,8 +1,6 @@
 #!/bin/bash
-echo $1
-echo $2
 
-if [ $# -eq 0 ]; then
+if [ $# -eq 0 ] || [ $# -eq 1 ]; then
     echo "Usage:"
     echo "./tidyword input1.txt input2.txt"
     exit 1

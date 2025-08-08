@@ -14,7 +14,7 @@
 
 ----
 ## What is New?
-* Poter's Stemmer in ANSI C (porter.c)
+* Porter's Stemmer in ANSI C (porter.c)
 * Document Similarity code to find Euclidean, Cosine and Jaccard Similarity Coefficients (docsim.c)
 
 ## To compile and run TidyWord using gcc:
